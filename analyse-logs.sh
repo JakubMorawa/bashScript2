@@ -1,27 +1,45 @@
 #!/bin/bash
 
-# 1. Path and variables
 LOG_DIR="logs"
 ERROR_PATTERNS=("ERROR" "FATAL" "CRITICAL")
+REPORT_FILE="log_analysis_report.txt"
+THRESHOLD=10
 
-echo "Analyzing logs in $LOG_DIR"
+echo "analysing log files" > "$REPORT_FILE"
+echo "==============================" >> "$REPORT_FILE"
 
-# 2. Find log files modified in the last 24 hours (safely handle spaces)
-# Using mapfile/readarray to store files in an array properly
-mapfile -t LOG_FILES < <(find "$LOG_DIR" -name "*.log")
+echo -e "\nList of log files updated in last 24 hours" >> "$REPORT_FILE"
 
-# 3. Outer loop: go through each log file found
+# Safely handle spaces in file names using mapfile and find
+mapfile -t LOG_FILES < <(find "$LOG_DIR" -name "*.log" -mtime -1)
+
+# Print the list of files to the report
+for FILE in "${LOG_FILES[@]}"; do
+    echo "$FILE" >> "$REPORT_FILE"
+done
+
 for LOG_FILE in "${LOG_FILES[@]}"; do
-    echo "=================================================="
-    echo "====================$LOG_FILE===================="
-    echo "=================================================="
-    
-    # 4. Inner loop: go through each pattern
+    echo -e "\n" >> "$REPORT_FILE"
+    echo "==================================================" >> "$REPORT_FILE"
+    echo "==================== $LOG_FILE ====================" >> "$REPORT_FILE"
+    echo "==================================================" >> "$REPORT_FILE"
+
     for PATTERN in "${ERROR_PATTERNS[@]}"; do
-        echo -e "\nsearching $PATTERN logs in $LOG_FILE file"
-        grep "$PATTERN" "$LOG_FILE"
+        echo -e "\nsearching $PATTERN logs in $LOG_FILE file" >> "$REPORT_FILE"
+        # Added a space between pattern and file, and used variables properly
+        grep "$PATTERN" "$LOG_FILE" >> "$REPORT_FILE"
+
+        echo -e "\nNumber of $PATTERN logs found in $LOG_FILE" >> "$REPORT_FILE"
         
-        echo -e "\nNumber of $PATTERN logs found in $LOG_FILE"
-        grep -c "$PATTERN" "$LOG_FILE"
+        # Correct syntax for saving command output to a variable: $(command)
+        ERROR_COUNT=$(grep -c "$PATTERN" "$LOG_FILE")
+        echo "$ERROR_COUNT" >> "$REPORT_FILE"
+
+        # Fixed syntax: Spaces inside brackets are mandatory, and variables need '$'
+        if [ "$ERROR_COUNT" -gt "$THRESHOLD" ]; then
+            echo "ACTION REQUIRED: $LOG_FILE has $ERROR_COUNT $PATTERN lines"
+        fi
     done
 done
+
+echo "Report saved: $REPORT_FILE"
