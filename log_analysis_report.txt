@@ -11,7 +11,7 @@ logs/system.log
 ==================================================
 
 searching ERROR logs in logs/application.log file
-[2025-06-01 08:17:48] [ERROR] Payment gateway timeout after 30sgit  for transaction TX78901234
+[2025-06-01 08:17:48] [ERROR] Payment gateway timeout after 30s for transaction TX78901234
 [2025-06-01 08:25:48] [ERROR] Insufficient disk space for file upload
 [2025-06-01 08:41:33] [ERROR] Invalid product code: PRD-404-NOTFOUND
 [2025-06-01 08:55:19] [ERROR] Failed to update product #5678 - Database constraint violation
